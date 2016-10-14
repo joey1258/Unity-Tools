@@ -3,7 +3,6 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Utils;
 
 /// <summary>
 /// 打包文件类型枚举，可自行根据需要定义
@@ -213,7 +212,7 @@ public class AddBuildMapWindow : EditorWindow
     void AutoFill(int index, Object selectedObject)
     {
         string path = AssetDatabase.GetAssetPath(selectedObject);
-        bundleNameList[index] = path.Remove(0, path.LastIndexOf("/") + 1).ToLower() + AppDefine.ExtName;
+        bundleNameList[index] = path.Remove(0, path.LastIndexOf("/") + 1).ToLower() + ".unity3d";
 
         string[] files = Directory.GetFiles(path);
         string[] temp = files[0].Split('.');

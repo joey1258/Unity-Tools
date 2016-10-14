@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 public static class PackagerUtils
 {
@@ -62,7 +64,7 @@ public static class PackagerUtils
         /* ------------------------------------------------------*/
 
         // 获取资源地址（/Assets/StreamingAssets）
-        string resPath = "Assets/" + AppDefine.AssetDir;
+        string resPath = "Assets/" + PathUtils.AssetDir;
         // BuildAssetBundleOptions ： 在创建时不编译 | 哈希 id
         BuildAssetBundleOptions options =
             BuildAssetBundleOptions.DeterministicAssetBundle |
@@ -82,7 +84,7 @@ public static class PackagerUtils
     /// </summary>
     static void HandleBundle()
     {
-        string resPath = AppDataPath + "/" + AppDefine.AssetDir + "/";
+        string resPath = AppDataPath + "/" + PathUtils.AssetDir + "/";
         if (!Directory.Exists(resPath)) Directory.CreateDirectory(resPath);
 
         string content = File.ReadAllText(Application.dataPath + "/Files/BuildMap_cvs/AssetBundleInfo.csv");
@@ -129,7 +131,7 @@ public static class PackagerUtils
         HandleLuaBundle(all);
 
         // 获取资源地址（/Assets/StreamingAssets）
-        string resPath = "Assets/" + AppDefine.AssetDir;
+        string resPath = "Assets/" + PathUtils.AssetDir;
         // BuildAssetBundleOptions ： 在创建时不编译 | 哈希 id
         BuildAssetBundleOptions options =
             BuildAssetBundleOptions.DeterministicAssetBundle |
@@ -141,7 +143,7 @@ public static class PackagerUtils
         BuildFileIndex();
 
         // 拼接 lua 临时目录
-        string luaTempDir = Application.dataPath + AppDefine.LuaTempDir;
+        string luaTempDir = Application.dataPath + PathUtils.LuaTempDir;
         // 删除 lua 临时目录
         if (Directory.Exists(luaTempDir)) Directory.Delete(luaTempDir, true);
         // 刷新
@@ -153,7 +155,7 @@ public static class PackagerUtils
     /// </summary>
     static void HandleLuaBundle(bool all)
     {
-        string luaTempDir = Application.dataPath + AppDefine.LuaTempDir;
+        string luaTempDir = Application.dataPath + PathUtils.LuaTempDir;
         if (!Directory.Exists(luaTempDir)) Directory.CreateDirectory(luaTempDir);
 
         string content = File.ReadAllText(Application.dataPath + "/Files/BuildMap_cvs/AssetBundleInfo.csv");
@@ -174,7 +176,7 @@ public static class PackagerUtils
             {
                 string name = dirs[i].Replace(luaTempDir, string.Empty);
                 name = name.Replace('\\', '_').Replace('/', '_');
-                name = "lua/lua_" + name.ToLower() + AppDefine.ExtName;
+                name = "lua/lua_" + name.ToLower() + ".unity3d";
                 string path = "Assets" + dirs[i].Replace(Application.dataPath, "");
                 AddBuildMap(name, "*.bytes", path);
             }
@@ -196,10 +198,10 @@ public static class PackagerUtils
                     newPath = "Assets" + dirs[i].Replace(Application.dataPath, "");
                 }
             }
-            AddBuildMap("lua/lua_" + _name + AppDefine.ExtName, "*.bytes", newPath);
+            AddBuildMap("lua/lua_" + _name + ".unity3d", "*.bytes", newPath);
         }
 
-        AddBuildMap("lua/lua" + AppDefine.ExtName, "*.bytes", "Assets" + AppDefine.LuaTempDir);
+        AddBuildMap("lua/lua" + ".unity3d", "*.bytes", "Assets" + PathUtils.LuaTempDir);
         AssetDatabase.Refresh();
     }
 
@@ -315,6 +317,103 @@ public static class PackagerUtils
             string dir = Path.GetDirectoryName(dest);
             Directory.CreateDirectory(dir);
             File.Copy(files[i], dest, true);
+        }
+    }
+}
+
+public class PathUtils
+{
+    /// <summary>
+    /// 取得数据存放目录
+    /// </summary>
+    public const string AppName = "Name";
+
+    /// <summary>
+    /// 临时目录
+    /// </summary>
+    public const string LuaTempDir = "/TempLuaFiles/";
+
+    /// <summary>
+    /// 素材目录 
+    /// </summary>
+    public const string AssetDir = "StreamingAssets";
+
+    /// <summary>
+    /// 取得数据存放目录
+    /// </summary>
+    public static string DataPath
+    {
+        get
+        {
+            string game = AppName.ToLower();
+            if (Application.isMobilePlatform)
+            {
+                return Application.persistentDataPath + "/" + game + "/";
+            }
+            if (Application.platform == RuntimePlatform.OSXEditor)
+            {
+                int i = Application.dataPath.LastIndexOf('/');
+                return Application.dataPath.Substring(0, i + 1) + game + "/";
+            }
+            return "c:/" + game + "/";
+        }
+    }
+
+    /// <summary>
+    /// 框架根目录
+    /// </summary>
+    public static string FrameworkRoot
+    {
+        get
+        {
+            return Application.dataPath + "/" + AppName;
+        }
+    }
+
+    /// <summary>
+    /// 本地目录(更多对应平台请自行添加)
+    /// </summary>
+    public static string LocalFilePath
+    {
+        get
+        {
+#if UNITY_ANDROID
+		return "jar:file://" + Application.dataPath + "!/assets/";
+#elif UNITY_IPHONE
+		return Application.dataPath + "/Raw/";
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR
+            return "file://" + Application.dataPath + "/StreamingAssets/";
+#else
+        return string.Empty;
+#endif
+        }
+    }
+}
+
+public class Md5Utils
+{
+    /// <summary>
+    /// 计算文件的MD5值
+    /// </summary>
+    public static string md5file(string file)
+    {
+        try
+        {
+            FileStream fs = new FileStream(file, FileMode.Open);
+            System.Security.Cryptography.MD5 md5 = new System.Security.Cryptography.MD5CryptoServiceProvider();
+            byte[] retVal = md5.ComputeHash(fs);
+            fs.Close();
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < retVal.Length; i++)
+            {
+                sb.Append(retVal[i].ToString("x2"));
+            }
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("md5file() fail, error:" + ex.Message);
         }
     }
 }
