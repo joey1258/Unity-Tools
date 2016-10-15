@@ -85,6 +85,14 @@ public class AddBuildMapWindow : EditorWindow
         {
             Clear();
 
+            // 如果 streaming 目录存在，就删除并重新创建，并刷新 AssetDatabase
+            if (Directory.Exists(Application.dataPath + "/Files/BuildMap_cvs/"))
+            {
+                Directory.CreateDirectory(Application.dataPath + "/Files/BuildMap_cvs/");
+            }
+
+            AssetDatabase.Refresh();
+
             string path = Application.dataPath + "/Files/BuildMap_cvs/AssetBundleInfo.csv";
             string content = File.ReadAllText(path);
             string[] contents = content.Split(new string[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries);
@@ -116,7 +124,7 @@ public class AddBuildMapWindow : EditorWindow
 
         EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.LabelField("注意：lua文件请以文件夹为单位进行选择！文件夹名即为包名！lua文件请不要混同其他类型文件存放！打包lua文件请点击Build Lua按钮，Build Lua Selected打包选中的文件夹下的lua文件;");
+        EditorGUILayout.LabelField("注意：lua文件请以文件夹为单位进行选择！打包后文件夹名即为包名！lua文件请不要混同其他类型文件存放！打包lua文件请点击Build Lua按钮，Build Lua Selected打包选中的文件夹下的lua文件;");
         EditorGUILayout.LabelField("Build Lua All打包所有同级目录中的lua文件，打包其他文件请点击Build Asset按钮。按分辨率打包纹理时遇到报“Variant folder path cannot be empty”错误时请忽略，此为 U3D 5.3.X 版本的 bug，经实测不影响使用.");
 
         scrollValue = EditorGUILayout.BeginScrollView(scrollValue);
@@ -287,6 +295,14 @@ public class AddBuildMapWindow : EditorWindow
 
     void Save()
     {
+        // 如果 streaming 目录存在，就删除并重新创建，并刷新 AssetDatabase
+        if (!Directory.Exists(Application.dataPath + "/Files/BuildMap_cvs/"))
+        {
+            Directory.CreateDirectory(Application.dataPath + "/Files/BuildMap_cvs/");
+        }
+
+        AssetDatabase.Refresh();
+
         string path = Application.dataPath + "/Files/BuildMap_cvs/AssetBundleInfo.csv";
 
         StringBuilder sb = new StringBuilder();

@@ -132,6 +132,14 @@ public static class PackagerUtils
 
         // 获取资源地址（/Assets/StreamingAssets）
         string resPath = "Assets/" + PathUtils.AssetDir;
+        // 如果 streaming 目录存在，就删除并重新创建，并刷新 AssetDatabase
+        if (!Directory.Exists(resPath))
+        {
+            Directory.CreateDirectory(resPath);
+        }
+
+        AssetDatabase.Refresh();
+
         // BuildAssetBundleOptions ： 在创建时不编译 | 哈希 id
         BuildAssetBundleOptions options =
             BuildAssetBundleOptions.DeterministicAssetBundle |
