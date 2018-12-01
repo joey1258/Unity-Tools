@@ -9,15 +9,20 @@ namespace Utils
     {
         CSV,
         JSON,
-        STRING,
+        DEFAULT,
     }
 
     public static class Dir_Constants
     {
         /// <summary>
+        /// 默认目录
+        /// </summary>
+        public static string Default = "default";
+
+        /// <summary>
         /// 用户默认子目录
         /// </summary>
-        public static string UsedDir = "default";
+        public static string UsedDir = "user";
 
         /// <summary>
         /// CSV 子目录
@@ -82,8 +87,8 @@ namespace Utils
                 case DataType.JSON:
                     path = Application.persistentDataPath + "/" + Dir_Constants.JSONDir + "/" + folder;
                     break;
-                case DataType.STRING:
-                    path = Application.persistentDataPath + "/" + Dir_Constants.UsedDir + "/" + folder;
+                case DataType.DEFAULT:
+                    path = Application.persistentDataPath + "/" + Dir_Constants.Default + "/" + folder;
                     break;
             }
             
