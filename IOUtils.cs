@@ -82,6 +82,9 @@ namespace Utils
                 case DataType.JSON:
                     path = Application.persistentDataPath + "/" + Dir_Constants.JSONDir + "/" + folder;
                     break;
+                case DataType.STRING:
+                    path = Application.persistentDataPath + "/" + Dir_Constants.UsedDir + "/" + folder;
+                    break;
             }
             
             if (!Directory.Exists(path))
