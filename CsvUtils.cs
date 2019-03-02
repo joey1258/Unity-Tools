@@ -225,7 +225,7 @@ namespace Utils
         {
             List<string> nodes = new List<string>();
             List<string> columnKeys = new List<string>(columns.Keys);
-            // 由于 WhereColumn 方法返回的第一个元素为表格的列名，所以不能从 0 开始
+            // 由于第一个元素为表格的列名，所以不能从 0 开始
             for (int i = 1; i < columns.Count; i++)
             {
                 nodes.Add(nodesX[rows[rowName]][columns[columnKeys[i]]].data);
@@ -243,7 +243,7 @@ namespace Utils
         {
             List<string> nodes = new List<string>();
             List<string> rowKeys = new List<string>(rows.Keys);
-            // 由于 WhereColumn 方法返回的第一个元素为表格的列名，所以不能从 0 开始
+            // 由于第一个元素为表格的列名，所以不能从 0 开始
             for (int i = 1; i < rows.Count; i++)
             {
                 nodes.Add(nodesY[columns[columnName]][rows[rowKeys[i]]].data);
