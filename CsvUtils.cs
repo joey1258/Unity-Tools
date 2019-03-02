@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Utils
 {
     /// <summary>
-    /// 能够使用数据库语法的 CSV 类（必须配合 IOUtils.cs 使用，该文件可在  https://github.com/joey1258/Unity-Tools 获得）
+    /// Unity 不支持 DataTable，因此只能自己实现
     /// </summary>
     public static class CSV
     {
@@ -48,9 +48,10 @@ namespace Utils
         /// <summary>
         /// 读取 cvs 文件为一整条的字符串
         /// </summary>
-        public static string LoadCsvString(string fileName)
+        public static string LoadCsvString(string fileName, string usedDir)
         {
-            string filePath = Application.persistentDataPath + "/" + fileName;
+            if (!string.IsNullOrEmpty(usedDir)) { Use(usedDir); }
+            string filePath = Application.persistentDataPath + "/" + Dir_Constants.CSVDir + "/" + fileName + ".csv";
             // 必须使用 Encoding.Default，其他均为乱码，不用 Encoding 参数也为乱码
             string text = File.ReadAllText(filePath, Encoding.Default);
             return text;
@@ -59,14 +60,41 @@ namespace Utils
         /// <summary>
         /// 保存 csv 到指定路径
         /// </summary>
-        public static void SaveCSVToFile(CsvTable cvs, string fileName)
+        public static void SaveCSVToFile(CsvTable cvs, string fileName, string usedDir)
         {
-            string filePath = Application.persistentDataPath + "/" + fileName;
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath, false))
+            if (!string.IsNullOrEmpty(usedDir)) { Use(usedDir); }
+            string filePath = Application.persistentDataPath + "/" + Dir_Constants.CSVDir + "/" + fileName + ".csv";
+            using (StreamWriter file = new StreamWriter(filePath, false))
             {
                 file.Write(OutputCSVTable(cvs));
             }
         }
+
+        #region Output Function
+
+        public static string OutputCSVTable(CsvTable cvs)
+        {
+            StringBuilder data = new StringBuilder();
+
+            List<string> columnsKeys = new List<string>(cvs.columns.Keys);
+            List<string> rowsKeys = new List<string>(cvs.rows.Keys);
+            for (int i = 0; i < cvs.rows.Count; i++)
+            {
+                for (int n = 0; n < cvs.rows.Count; n++)
+                {
+                    if (n == 0) { data.Append(cvs.Where(rowsKeys[i], columnsKeys[n])); }
+                    else
+                    {
+                        data.Append(',');
+                        data.Append(cvs.Where(rowsKeys[i], columnsKeys[n]));
+                    }
+                }
+                data.Append("\r\n");
+            }
+            return data.ToString();
+        }
+
+        #endregion
 
         #endregion
 
@@ -75,13 +103,13 @@ namespace Utils
         /// <summary>
         /// 读取 CSV 表格，并用路径作为 id
         /// </summary>
-        public static CsvTable LoadTable(string fileName)
+        public static CsvTable LoadTable(string fileName, string folder)
         {
             CsvTable table = new CsvTable(fileName);
             CsvNode node = null;
             tables[fileName] = table;
 
-            string[] lines = LoadCsvString(fileName).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = LoadCsvString(fileName, folder).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             int columns = lines.Length;
             // 每一个 csv 文件的第一行为各列的列名
             string[] titles = lines[0].Split(',');
@@ -139,43 +167,17 @@ namespace Utils
 
         #endregion
 
-        #region Output Function
-
-        public static string OutputCSVTable(CsvTable cvs)
-        {
-            StringBuilder data = new StringBuilder();
-
-            List<string> columnsKeys = new List<string>(cvs.columns.Keys);
-            List<string> rowsKeys = new List<string>(cvs.rows.Keys);
-            for (int i = 0; i < cvs.rows.Count; i++)
-            {
-                for (int n = 0; n < cvs.rows.Count; n++)
-                {
-                    if (n == 0) { data.Append(cvs.Where(rowsKeys[i], columnsKeys[n])); }
-                    else
-                    {
-                        data.Append(',');
-                        data.Append(cvs.Where(rowsKeys[i], columnsKeys[n]));
-                    }
-                }
-                data.Append("\r\n");
-            }
-            return data.ToString();
-        }
-
-        #endregion
-
         #region Select Function
 
         /// <summary>
         /// 返回指定 Table
         /// </summary>
-        public static CsvTable Select(string id)
+        public static CsvTable Select(string id, string folder = "")
         {
             if (selectTable == null || selectTable.id != id)
             {
                 if (tables.ContainsKey(id)) { selectTable = tables[id]; }
-                else { selectTable = LoadTable(id); }
+                else { selectTable = LoadTable(id, folder); }
             }
             
             return selectTable;
